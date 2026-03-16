@@ -4,28 +4,41 @@ import 'note_add_screen.dart';
 import 'login_screen.dart';
 import 'sign_up_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/secure_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final secureStorage = SecureSupabaseStorage();
+
   await Supabase.initialize(
     url: 'https://zhhfhmqpyqdiqibefjzq.supabase.co',
     anonKey: 'sb_publishable_QJfXY-z_gGq8MWkysUW4yA_391Yd-YV',
+    authOptions: FlutterAuthClientOptions(
+      localStorage: secureStorage,
+    ),
   );
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      initialRoute: '/login',
+      home: user != null ? const MyHomePage(title: 'Jobb Notater') : const LoginScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
