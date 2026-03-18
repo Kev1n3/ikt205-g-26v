@@ -119,34 +119,64 @@ class _MyHomePageState extends State<MyHomePage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Logged out successfully!')),
                 );
-                Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pushReplacementNamed(context, '/login');
               }
             },
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(notes[index]['title']??'No Title',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-             onTap: () async {  
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NoteDetailScreen(note: notes[index]),
+
+    body: ListView.builder(
+      itemCount: notes.length,
+      itemBuilder: (context, index) {
+        return Card(  
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                title: Text(
+                  notes[index]['title'] ?? 'No Title',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  notes[index]['text'] ?? 'No Content',
+                  maxLines: 2,
+                ),
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NoteDetailScreen(note: notes[index]),
+                    ),
+                  );
+                  if (result == true) {
+                    _fetchNotes();
+                  }
+                },
               ),
-            );
-            if (result == true) {
-              _fetchNotes();  
-            }
-          },
-          subtitle: Text(notes[index]['text']!),
+              
+              if (notes[index]['image_url'] != null && 
+                  notes[index]['image_url'].toString().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      notes[index]['image_url'],
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     ),
+
+
       floatingActionButton: FloatingActionButton(
         onPressed: () async  {
           final newNote = await Navigator.push(context, MaterialPageRoute(
