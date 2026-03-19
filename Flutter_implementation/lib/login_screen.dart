@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
     try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
+      final supabase = context.read<SupabaseProvider>().client;
+      final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );

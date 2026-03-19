@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'note_add_screen.dart';
+import 'package:provider/provider.dart';
+import 'main.dart';
 
 class NoteDetailScreen extends StatelessWidget {
   final Map<String, dynamic> note;
@@ -33,7 +35,8 @@ class NoteDetailScreen extends StatelessWidget {
               Navigator.pop(context); 
 
               try {
-                await Supabase.instance.client.from('notes').delete().eq('id', note['id']);
+                final supabase = context.read<SupabaseProvider>().client;
+                await supabase.from('notes').delete().eq('id', note['id']);   
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Notat slettet')),
@@ -63,7 +66,8 @@ class NoteDetailScreen extends StatelessWidget {
     final updated = note['updated_at'];
     final hasBeenUpdated = updated != null && updated != created;
 
-    final currentUser = Supabase.instance.client.auth.currentUser;
+    final supabase = context.read<SupabaseProvider>().client;
+    final currentUser = supabase.auth.currentUser;
     final isOwner = currentUser != null && note['user_id'] == currentUser.id;
 
     return Scaffold(

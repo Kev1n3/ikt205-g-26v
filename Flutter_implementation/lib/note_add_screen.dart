@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'services/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart'; 
+import 'main.dart';
 
 class NoteAddScreen extends StatefulWidget {
   final Map<String, dynamic>? note;
@@ -99,7 +101,8 @@ class _NoteAddScreenState extends State<NoteAddScreen> {
 
   Future<String> _uploadImage(File file) async {
     try {
-      final user = Supabase.instance.client.auth.currentUser;
+      final supabase = context.read<SupabaseProvider>().client;
+      final user = supabase.auth.currentUser;
       if (user == null) throw Exception('Ikke innlogget');
 
       if (!file.existsSync()) throw Exception('Filen finnes ikke');
@@ -109,17 +112,16 @@ class _NoteAddScreenState extends State<NoteAddScreen> {
       final filePath = 'notes/$fileName';
 
       // Upload
-      await Supabase.instance.client.storage
+      await supabase.storage
           .from('images')
           .upload(filePath, file);
 
       // Hent URL
-      return Supabase.instance.client.storage
+      return supabase.storage
           .from('images')
           .getPublicUrl(filePath);
           
     } catch (e) {
-      debugPrint('Upload feilet: $e');
       throw Exception('Kunne ikke laste opp bildet');
     }
   }
@@ -155,7 +157,8 @@ class _NoteAddScreenState extends State<NoteAddScreen> {
     setState(()=> _isLoading = true);
 
     try {
-      final user = Supabase.instance.client.auth.currentUser;
+      final supabase = context.read<SupabaseProvider>().client;
+      final user = supabase.auth.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User not authenticated. Please log in again.')),
@@ -169,14 +172,14 @@ class _NoteAddScreenState extends State<NoteAddScreen> {
       }
 
       if (widget.note != null) {
-        await Supabase.instance.client.from('notes').update({
+        await supabase.from('notes').update({
           'title': title,
           'text': content,
           'image_url': finalImageUrl,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         }).eq('id', widget.note!['id']);
       } else {
-        await Supabase.instance.client.from('notes').insert({
+        await supabase.from('notes').insert({
           'user_id': user.id,
           'title': title,
           'text': content,
